@@ -27,9 +27,15 @@ public class TelaQuiz extends JFrame {
     private JLabel lblStatus;
     private JLabel lblTitulo;
     private JLabel lblFeedback;
+    private JLabel lblTempo;
     private JButton[] botoes;
     private JButton btnProxima;
     private JProgressBar progressBar;
+
+    // Timer
+    private Timer timerPergunta;
+    private int tempoRestante = 20;
+    private static final int TEMPO_LIMITE = 20;
 
     // Sistema Elástico de Escala 16:9
     private double escala = 1.0;
@@ -131,6 +137,12 @@ public class TelaQuiz extends JFrame {
         lblStatus.setFont(new Font("Segoe UI", Font.BOLD, esc(14)));
         lblStatus.setForeground(new Color(148, 163, 184));
 
+        lblTempo = new JLabel("");
+        lblTempo.setFont(new Font("Segoe UI", Font.BOLD, esc(30)));
+        lblTempo.setForeground(AZUL);
+        lblTempo.setHorizontalAlignment(SwingConstants.CENTER);
+        lblTempo.setPreferredSize(new Dimension(esc(80), esc(40)));
+
         progressBar = new JProgressBar();
         progressBar.setPreferredSize(new Dimension(esc(320), esc(10)));
         progressBar.setBackground(new Color(47, 47, 65));
@@ -147,7 +159,18 @@ public class TelaQuiz extends JFrame {
         gbcHeader.insets = new Insets(esc(6), 0, 0, 0);
         direitaHeader.add(progressBar, gbcHeader);
 
-        header.add(lblTitulo, BorderLayout.WEST);
+        gbcHeader.gridy++;
+        gbcHeader.insets = new Insets(esc(100), 0, 0, 0);
+        direitaHeader.add(lblTempo, gbcHeader);
+
+        JPanel esquerdaHeader = new JPanel(new GridBagLayout());
+        esquerdaHeader.setOpaque(false);
+        GridBagConstraints titleHeader = new GridBagConstraints();
+        titleHeader.anchor = GridBagConstraints.WEST;
+        titleHeader.insets = new Insets(esc(-100), 0, 0, 0);
+        esquerdaHeader.add(lblTitulo, titleHeader);
+
+        header.add(esquerdaHeader, BorderLayout.WEST);
         header.add(direitaHeader, BorderLayout.EAST);
 
         // ==========================================
@@ -285,9 +308,15 @@ public class TelaQuiz extends JFrame {
 
         lblFeedback.setText(" ");
         btnProxima.setVisible(false);
+
+        // Inicia o timer
+        iniciarTimer();
     }
 
     private void responder(int idx) {
+        // Para o timer quando o usuário responde
+        pararTimer();
+
         Pergunta p = perguntas.get(indice);
         char[] letras = { 'a', 'b', 'c', 'd' };
         char resposta = letras[idx];
@@ -325,6 +354,7 @@ public class TelaQuiz extends JFrame {
     }
 
     private void proximaPergunta() {
+        pararTimer();
         indice++;
         if (indice >= perguntas.size()) {
             try {
@@ -337,5 +367,67 @@ public class TelaQuiz extends JFrame {
         } else {
             exibirPergunta();
         }
+    }
+
+    private void iniciarTimer() {
+        tempoRestante = TEMPO_LIMITE;
+        atualizarLblTempo();
+
+        if (timerPergunta != null) {
+            timerPergunta.stop();
+        }
+
+        timerPergunta = new Timer(1000, e -> {
+            tempoRestante--;
+            atualizarLblTempo();
+
+            if (tempoRestante <= 0) {
+                pararTimer();
+                marcarComoPerguntaErrada();
+            }
+        });
+        timerPergunta.start();
+    }
+
+    private void pararTimer() {
+        if (timerPergunta != null) {
+            timerPergunta.stop();
+        }
+    }
+
+    private void atualizarLblTempo() {
+        if (tempoRestante <= 5) {
+            lblTempo.setForeground(VERMELHO);
+        } else {
+            lblTempo.setForeground(AZUL);
+        }
+        lblTempo.setText(tempoRestante + "s");
+    }
+
+    private void marcarComoPerguntaErrada() {
+        Pergunta p = perguntas.get(indice);
+
+        try {
+            // Registra a resposta como nula (tempo esgotado)
+            quizService.registrarRespostaNula(partida.getIpartida(), p);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao registrar resposta: " + e.getMessage());
+            return;
+        }
+
+        // Desabilita todos os botões
+        for (JButton b : botoes) {
+            b.setEnabled(false);
+            b.setBackground(new Color(40, 40, 55));
+        }
+
+        int correta = "abcd".indexOf(p.getRespostaCorreta());
+        botoes[correta].setBackground(VERDE);
+        lblFeedback.setForeground(VERMELHO);
+        lblFeedback.setText("✕  TEMPO ESGOTADO");
+
+        boolean ultima = (indice == perguntas.size() - 1);
+        btnProxima.setText(ultima ? "VER RESULTADO" : "PRÓXIMA PERGUNTA");
+        btnProxima.setVisible(true);
     }
 }

@@ -4,6 +4,7 @@ import com.quiz.config.DatabaseConnection;
 import com.quiz.model.PartidaPergunta;
 
 import java.sql.*;
+import java.sql.Types;
 
 public class PartidaPerguntaDAO {
 
@@ -14,7 +15,11 @@ public class PartidaPerguntaDAO {
 
             stmt.setInt(1, pp.getIpartida());
             stmt.setInt(2, pp.getIdPergunta());
-            stmt.setString(3, String.valueOf(pp.getRespostaDada()));
+            if (pp.getRespostaDada() == null) {
+                stmt.setNull(3, Types.VARCHAR);
+            } else {
+                stmt.setString(3, pp.getRespostaDada().toString());
+            }
             stmt.setBoolean(4, pp.isAcertou());
             stmt.executeUpdate();
         }

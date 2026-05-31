@@ -33,6 +33,16 @@ public class QuizService {
         return acertou;
     }
 
+    public boolean registrarRespostaNula(int ipartida, Pergunta pergunta) throws SQLException {
+        PartidaPergunta pp = new PartidaPergunta();
+        pp.setIpartida(ipartida);
+        pp.setIdPergunta(pergunta.getIdPergunta());
+        pp.setRespostaDada(null);
+        pp.setAcertou(false);
+        ppDAO.salvarResposta(pp);
+        return false;
+    }
+
     public int buscarPontuacaoFinal(int ipartida) throws SQLException {
         return partidaDAO.buscarPontuacao(ipartida);
     }
