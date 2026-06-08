@@ -46,4 +46,8 @@ public class QuizService {
     public int buscarPontuacaoFinal(int ipartida) throws SQLException {
         return partidaDAO.buscarPontuacao(ipartida);
     }
+
+    public void atualizarKwanzasPartida(int ipartida, int kwanzas) throws SQLException {
+        partidaDAO.atualizarKwanzas(ipartida, kwanzas);
+    }
 }

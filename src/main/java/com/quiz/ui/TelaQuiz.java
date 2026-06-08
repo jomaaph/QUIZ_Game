@@ -21,11 +21,13 @@ public class TelaQuiz extends JFrame {
 
     private int indice = 0;
     private int acertos = 0;
+    private int placar = 0;
 
     // Componentes
     private JLabel lblPergunta;
     private JLabel lblStatus;
     private JLabel lblTitulo;
+    private JLabel lblPlacar;
     private JLabel lblFeedback;
     private JLabel lblTempo;
     private JButton[] botoes;
@@ -143,6 +145,12 @@ public class TelaQuiz extends JFrame {
         lblTempo.setHorizontalAlignment(SwingConstants.CENTER);
         lblTempo.setPreferredSize(new Dimension(esc(80), esc(40)));
 
+        lblPlacar = new JLabel("PLACAR: 0 KZ");
+        lblPlacar.setFont(new Font("Segoe UI", Font.BOLD, esc(24)));
+        lblPlacar.setForeground(VERDE);
+        lblPlacar.setHorizontalAlignment(SwingConstants.LEFT);
+        lblPlacar.setPreferredSize(new Dimension(esc(250), esc(40)));
+
         progressBar = new JProgressBar();
         progressBar.setPreferredSize(new Dimension(esc(320), esc(10)));
         progressBar.setBackground(new Color(47, 47, 65));
@@ -160,15 +168,18 @@ public class TelaQuiz extends JFrame {
         direitaHeader.add(progressBar, gbcHeader);
 
         gbcHeader.gridy++;
-        gbcHeader.insets = new Insets(esc(100), 0, 0, 0);
+        gbcHeader.insets = new Insets(esc(80), 0, 0, 0);
         direitaHeader.add(lblTempo, gbcHeader);
 
         JPanel esquerdaHeader = new JPanel(new GridBagLayout());
         esquerdaHeader.setOpaque(false);
         GridBagConstraints titleHeader = new GridBagConstraints();
-        titleHeader.anchor = GridBagConstraints.WEST;
-        titleHeader.insets = new Insets(esc(-100), 0, 0, 0);
+        titleHeader.gridx = 0; titleHeader.gridy = 0; titleHeader.anchor = GridBagConstraints.WEST;
         esquerdaHeader.add(lblTitulo, titleHeader);
+
+        titleHeader.gridy++;
+        titleHeader.insets = new Insets(esc(80), 0, 0, 0);
+        esquerdaHeader.add(lblPlacar, titleHeader);
 
         header.add(esquerdaHeader, BorderLayout.WEST);
         header.add(direitaHeader, BorderLayout.EAST);
@@ -308,6 +319,7 @@ public class TelaQuiz extends JFrame {
 
         lblFeedback.setText(" ");
         btnProxima.setVisible(false);
+        atualizarLblPlacar();
 
         // Inicia o timer
         iniciarTimer();
@@ -337,15 +349,24 @@ public class TelaQuiz extends JFrame {
 
         if (acertou) {
             acertos++;
+            int pontosGanho = 100 + tempoRestante * 10;
+            placar += pontosGanho;
+            atualizarLblPlacar();
             botoes[idx].setBackground(VERDE);
             lblFeedback.setForeground(VERDE);
-            lblFeedback.setText("✓  RESPOSTA CORRETA");
+            lblFeedback.setText("✓  RESPOSTA CORRETA  (+" + pontosGanho + " KZ)");
         } else {
             botoes[idx].setBackground(VERMELHO);
             int correta = "abcd".indexOf(p.getRespostaCorreta());
             botoes[correta].setBackground(VERDE);
             lblFeedback.setForeground(VERMELHO);
             lblFeedback.setText("✕  RESPOSTA INCORRETA");
+        }
+
+        try {
+            quizService.atualizarKwanzasPartida(partida.getIpartida(), placar);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao atualizar placar no banco: " + e.getMessage());
         }
 
         boolean ultima = (indice == perguntas.size() - 1);
@@ -357,13 +378,8 @@ public class TelaQuiz extends JFrame {
         pararTimer();
         indice++;
         if (indice >= perguntas.size()) {
-            try {
-                int pontuacao = quizService.buscarPontuacaoFinal(partida.getIpartida());
-                new TelaResultado(jogador, acertos, perguntas.size(), pontuacao).setVisible(true);
-                dispose();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Erro ao obter pontuação: " + e.getMessage());
-            }
+            new TelaResultado(jogador, acertos, perguntas.size(), placar).setVisible(true);
+            dispose();
         } else {
             exibirPergunta();
         }
@@ -404,12 +420,17 @@ public class TelaQuiz extends JFrame {
         lblTempo.setText(tempoRestante + "s");
     }
 
+    private void atualizarLblPlacar() {
+        lblPlacar.setText("PLACAR: " + placar + " KZ");
+    }
+
     private void marcarComoPerguntaErrada() {
         Pergunta p = perguntas.get(indice);
 
         try {
             // Registra a resposta como nula (tempo esgotado)
             quizService.registrarRespostaNula(partida.getIpartida(), p);
+            quizService.atualizarKwanzasPartida(partida.getIpartida(), placar);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Erro ao registrar resposta: " + e.getMessage());
             return;

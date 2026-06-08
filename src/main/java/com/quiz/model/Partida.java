@@ -6,6 +6,7 @@ public class Partida {
     private int ipartida;
     private LocalDateTime data;
     private int ponto;
+    private int kwanzas;
     private int idJogador;
     private int categoriaId;
 
@@ -24,6 +25,9 @@ public class Partida {
 
     public int getPonto() { return ponto; }
     public void setPonto(int ponto) { this.ponto = ponto; }
+
+    public int getKwanzas() { return kwanzas; }
+    public void setKwanzas(int kwanzas) { this.kwanzas = kwanzas; }
 
     public int getIdJogador() { return idJogador; }
     public void setIdJogador(int idJogador) { this.idJogador = idJogador; }

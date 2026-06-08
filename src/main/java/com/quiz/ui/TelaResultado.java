@@ -121,7 +121,7 @@ public class TelaResultado extends JFrame {
         card.add(lblPerc, gbc);
 
         // 7. Bloco de Dados - Pontuação Acumulada
-        JLabel lblPontos = new JLabel("Pontuação Final: " + pontuacao + " PTS", SwingConstants.CENTER);
+        JLabel lblPontos = new JLabel("Pontuação Final: " + pontuacao + " KZ", SwingConstants.CENTER);
         lblPontos.setFont(new Font("Segoe UI", Font.BOLD, esc(16)));
         lblPontos.setForeground(COR_LARANJA);
         gbc.gridy = 6; gbc.insets = new Insets(0, 0, esc(32), 0);

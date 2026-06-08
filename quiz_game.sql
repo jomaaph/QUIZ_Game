@@ -87,7 +87,8 @@ CREATE TABLE `partida` (
   CONSTRAINT `fk_partida_jogador` FOREIGN KEY (`id_jogador`) REFERENCES `jogador` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
+ALTER TABLE `partida`
+  ADD COLUMN `kwanzas` int NOT NULL DEFAULT 0 AFTER `ponto`;
 --
 -- Dumping data for table `partida`
 --

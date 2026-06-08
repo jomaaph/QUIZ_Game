@@ -35,4 +35,15 @@ public class PartidaDAO {
         }
         return 0;
     }
+
+    public void atualizarKwanzas(int ipartida, int kwanzas) throws SQLException {
+        String sql = "UPDATE partida SET kwanzas = ? WHERE ipartida = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, kwanzas);
+            stmt.setInt(2, ipartida);
+            stmt.executeUpdate();
+        }
+    }
 }
