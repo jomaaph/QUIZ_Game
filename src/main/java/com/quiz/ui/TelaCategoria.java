@@ -19,174 +19,187 @@ public class TelaCategoria extends JFrame {
     private CardCategoria cardSelecionado = null;
     private double escala = 1.0;
 
+    // Paleta Neo-Dark
+    private final Color BG    = new Color(10, 10, 20);
+    private final Color CARD  = new Color(22, 22, 38);
+    private final Color BORDA = new Color(50, 50, 75);
+    private final Color AZUL  = new Color(99, 102, 241);
+    private final Color TEXTO = Color.WHITE;
+    private final Color SUB   = new Color(100, 116, 139);
+
     public TelaCategoria(Jogador jogador) {
         this.jogador = jogador;
-        setTitle("Quiz Game - Selecione Seu Módulo");
+        setTitle("Quiz Game — Selecione a Categoria");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-        // Configura tamanho da tela 16:9 dinamicamente com base no monitor
         configurarTamanhoResponsivo();
-
         setLocationRelativeTo(null);
         setResizable(false);
         construirUI();
     }
 
     private void configurarTamanhoResponsivo() {
-        Dimension tamanhoTela = Toolkit.getDefaultToolkit().getScreenSize();
-        int larguraJanela = (int) (tamanhoTela.width * 0.75);
-        int alturaJanela = (larguraJanela * 9) / 16;
-
-        if (larguraJanela < 1024) {
-            larguraJanela = 1024;
-            alturaJanela = 576;
-        }
-
-        setSize(larguraJanela, alturaJanela);
-        this.escala = (double) larguraJanela / 1344.0;
+        Dimension tela = Toolkit.getDefaultToolkit().getScreenSize();
+        int larg = (int) (tela.width * 0.78);
+        int alt  = (larg * 9) / 16;
+        if (larg < 1024) { larg = 1024; alt = 576; }
+        setSize(larg, alt);
+        this.escala = (double) larg / 1344.0;
     }
 
-    private int esc(int pixels) {
-        return (int) Math.round(pixels * escala);
-    }
+    private int esc(int px) { return (int) Math.round(px * escala); }
 
     private void construirUI() {
-        JPanel base = new JPanel(new BorderLayout(0, esc(24)));
-        base.setBackground(Color.WHITE);
-        base.setBorder(new EmptyBorder(esc(32), esc(50), esc(32), esc(50)));
+        JPanel fundo = new JPanel(new BorderLayout()) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                GradientPaint gp = new GradientPaint(
+                        0, 0, BG, getWidth(), getHeight(), new Color(18, 12, 35));
+                g2.setPaint(gp);
+                g2.fillRect(0,0,getWidth(),getHeight());
+                // Círculos decorativos
+                g2.setColor(new Color(99,102,241,15));
+                g2.fillOval(-esc(100), -esc(100), esc(400), esc(400));
+                g2.fillOval(getWidth()-esc(200), getHeight()-esc(200), esc(400), esc(400));
+                g2.dispose();
+            }
+        };
+        fundo.setBorder(new EmptyBorder(esc(32), esc(50), esc(32), esc(50)));
 
-        // --- CABEÇALHO ---
-        JPanel cabecalho = new JPanel(new GridBagLayout());
-        cabecalho.setOpaque(false);
-        GridBagConstraints gbcCab = new GridBagConstraints();
-        gbcCab.gridx = 0; gbcCab.gridy = 0; gbcCab.fill = GridBagConstraints.HORIZONTAL;
+        // ── CABEÇALHO ──
+        JPanel cab = new JPanel();
+        cab.setLayout(new BoxLayout(cab, BoxLayout.Y_AXIS));
+        cab.setOpaque(false);
 
-        // Tag do Usuário (topo)
-        JLabel tagUsuario = new JLabel("USUÁRIO: " + jogador.getUsername().toUpperCase(), SwingConstants.CENTER) {
-            @Override
-            protected void paintComponent(Graphics g) {
+        // Tag do usuário
+        JLabel tagUser = new JLabel("👤  " + jogador.getUsername().toUpperCase(), SwingConstants.CENTER) {
+            @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(224, 242, 254));
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 30, 30));
+                g2.setColor(new Color(99,102,241,35));
+                g2.fill(new RoundRectangle2D.Float(0,0,getWidth(),getHeight(),20,20));
+                g2.setColor(BORDA);
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(1,1,getWidth()-2,getHeight()-2,20,20));
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
-        tagUsuario.setFont(new Font("Segoe UI", Font.BOLD, esc(12)));
-        tagUsuario.setForeground(new Color(14, 165, 233));
-        tagUsuario.setBorder(BorderFactory.createEmptyBorder(esc(6), esc(16), esc(6), esc(16)));
+        tagUser.setFont(new Font("Segoe UI", Font.BOLD, esc(12)));
+        tagUser.setForeground(AZUL);
+        tagUser.setBorder(BorderFactory.createEmptyBorder(esc(6), esc(20), esc(6), esc(20)));
+        tagUser.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JPanel containerTag = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        containerTag.setOpaque(false);
-        containerTag.add(tagUsuario);
-        cabecalho.add(containerTag, gbcCab);
+        JPanel tagWrap = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        tagWrap.setOpaque(false);
+        tagWrap.add(tagUser);
 
-        // Título Principal
-        gbcCab.gridy++;
-        gbcCab.insets = new Insets(esc(12), 0, 0, 0);
-        JLabel titulo = new JLabel("Selecione Seu Módulo", SwingConstants.CENTER);
+        JLabel titulo = new JLabel("Escolha o Módulo", SwingConstants.CENTER);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, esc(32)));
-        titulo.setForeground(new Color(99, 102, 241));
-        cabecalho.add(titulo, gbcCab);
+        titulo.setForeground(TEXTO);
+        titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Subtítulo
-        gbcCab.gridy++;
-        gbcCab.insets = new Insets(esc(4), 0, 0, 0);
-        JLabel instrucao = new JLabel("Escolha uma área de conhecimento para iniciar o desafio", SwingConstants.CENTER);
-        instrucao.setFont(new Font("Segoe UI", Font.PLAIN, esc(15)));
-        instrucao.setForeground(new Color(148, 163, 184));
-        cabecalho.add(instrucao, gbcCab);
+        JLabel instr = new JLabel("Selecione uma categoria de conhecimento para iniciar", SwingConstants.CENTER);
+        instr.setFont(new Font("Segoe UI", Font.PLAIN, esc(14)));
+        instr.setForeground(SUB);
+        instr.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // --- GRID DE CATEGORIAS ---
-        painelCategorias.setLayout(new GridLayout(1, 3, esc(24), 0));
+        cab.add(tagWrap);
+        cab.add(Box.createVerticalStrut(esc(10)));
+        cab.add(titulo);
+        cab.add(Box.createVerticalStrut(esc(4)));
+        cab.add(instr);
+
+        // ── GRID DE CATEGORIAS ──
+        painelCategorias.setLayout(new GridLayout(1, 3, esc(22), 0));
         painelCategorias.setOpaque(false);
         carregarCategorias();
 
-        // --- RODAPÉ CONTROLES ---
+        // ── RODAPÉ ──
         JPanel rodape = new JPanel(new GridBagLayout());
         rodape.setOpaque(false);
-        GridBagConstraints gbcRod = new GridBagConstraints();
-        gbcRod.gridx = 0; gbcRod.gridy = 0; gbcRod.insets = new Insets(0, 0, esc(16), 0);
+        GridBagConstraints g = new GridBagConstraints();
+        g.gridx = 0; g.gridy = 0; g.insets = new Insets(0, 0, esc(12), 0);
 
-        // Seletor de Perguntas
-        JPanel opcoes = new JPanel(new FlowLayout(FlowLayout.CENTER, esc(8), 0));
-        opcoes.setOpaque(false);
-        JLabel lblQtd = new JLabel("Quantidade de Perguntas:");
+        JPanel linha = new JPanel(new FlowLayout(FlowLayout.CENTER, esc(12), 0));
+        linha.setOpaque(false);
+
+        JLabel lblQtd = new JLabel("Nº de Perguntas:");
         lblQtd.setFont(new Font("Segoe UI", Font.BOLD, esc(13)));
-        lblQtd.setForeground(new Color(71, 85, 105));
+        lblQtd.setForeground(SUB);
 
-        String[] qtds = {"5", "10", "15", "20"};
-        JComboBox<String> comboQtd = new JComboBox<>(qtds);
+        JComboBox<String> comboQtd = new JComboBox<>(new String[]{"5","10","15","20"});
         comboQtd.setSelectedItem("10");
         comboQtd.setFont(new Font("Segoe UI", Font.PLAIN, esc(13)));
-        comboQtd.setBackground(Color.WHITE);
-        opcoes.add(lblQtd);
-        opcoes.add(comboQtd);
-        rodape.add(opcoes, gbcRod);
+        comboQtd.setBackground(CARD);
+        comboQtd.setForeground(TEXTO);
+        comboQtd.setPreferredSize(new Dimension(esc(80), esc(34)));
 
-        // Botão de Iniciar Desafio
-        gbcRod.gridy++;
-        gbcRod.insets = new Insets(0, 0, 0, 0);
-        JButton btnJogar = new JButton("INICIAR DESAFIO") {
-            @Override
-            protected void paintComponent(Graphics g) {
+        linha.add(lblQtd);
+        linha.add(comboQtd);
+        rodape.add(linha, g);
+
+        g.gridy++;
+        g.insets = new Insets(0, 0, 0, 0);
+
+        JButton btnJogar = new JButton("INICIAR DESAFIO  ⚡") {
+            @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getBackground());
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), esc(12), esc(12)));
+                GradientPaint gp = new GradientPaint(
+                        0, 0, AZUL, getWidth(), 0, new Color(139, 92, 246));
+                g2.setPaint(gp);
+                g2.fill(new RoundRectangle2D.Float(0,0,getWidth(),getHeight(),esc(12),esc(12)));
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
         btnJogar.setOpaque(false);
         btnJogar.setContentAreaFilled(false);
-        btnJogar.setBackground(new Color(99, 102, 241));
-        btnJogar.setForeground(Color.WHITE);
+        btnJogar.setForeground(TEXTO);
         btnJogar.setFont(new Font("Segoe UI", Font.BOLD, esc(15)));
         btnJogar.setFocusPainted(false);
-        btnJogar.setBorder(BorderFactory.createEmptyBorder(esc(14), esc(48), esc(14), esc(48)));
+        btnJogar.setBorder(BorderFactory.createEmptyBorder(esc(14), esc(52), esc(14), esc(52)));
         btnJogar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
         btnJogar.addActionListener(e -> {
             if (cardSelecionado == null) {
-                JOptionPane.showMessageDialog(this, "Selecione um módulo antes de continuar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Selecione uma categoria antes de continuar.", "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            int categoriaId = cardSelecionado.getCategoriaId();
-            Object item = comboQtd.getSelectedItem();
-            int qtd = (item != null) ? Integer.parseInt(item.toString()) : 10;
-            new TelaQuiz(jogador, categoriaId, qtd).setVisible(true);
+            int catId = cardSelecionado.getCategoriaId();
+            int qtd = Integer.parseInt((String) comboQtd.getSelectedItem());
+            new TelaQuiz(jogador, catId, qtd).setVisible(true);
             dispose();
         });
-        rodape.add(btnJogar, gbcRod);
+        rodape.add(btnJogar, g);
 
-        base.add(cabecalho, BorderLayout.NORTH);
-        base.add(painelCategorias, BorderLayout.CENTER);
-        base.add(rodape, BorderLayout.SOUTH);
-        add(base);
+        fundo.add(cab, BorderLayout.NORTH);
+        fundo.add(painelCategorias, BorderLayout.CENTER);
+        fundo.add(rodape, BorderLayout.SOUTH);
+        add(fundo);
     }
 
     private void carregarCategorias() {
         try {
             List<Categoria> cats = quizService.listarCategorias();
-            String[][] metadados = {
-                    {"AVANÇADO", "↗", "Investimentos & Economia", "new Color(16, 185, 129)"},
-                    {"DESAFIADOR", "⚛", "Raciocínio & Algoritmos", "new Color(217, 70, 239)"},
-                    {"INTERMEDIÁRIO", "⚙", "Programação, IA & Hardware", "new Color(14, 165, 233)"}
+            String[] emojis = {"💻", "💰", "🧠"};
+            String[] niveis = {"TECNOLOGIA", "FINANÇAS", "LÓGICA"};
+            String[] descs  = {"Programação, IA & Hardware", "Investimentos & Economia", "Raciocínio & Algoritmos"};
+            Color[] cores   = {
+                    new Color(14, 165, 233),
+                    new Color(16, 185, 129),
+                    new Color(217, 70, 239)
             };
 
             for (int i = 0; i < cats.size(); i++) {
                 Categoria c = cats.get(i);
-                String[] meta = metadados[i % metadados.length];
+                Color cor = cores[i % cores.length];
+                String emoji = emojis[i % emojis.length];
+                String nivel = niveis[i % niveis.length];
+                String desc  = descs[i % descs.length];
 
-                Color corTema = (i == 0) ? new Color(14, 165, 233) : (i == 1) ? new Color(16, 185, 129) : new Color(217, 70, 239);
-
-                CardCategoria card = new CardCategoria(c.getCategoriaId(), c.getCategoria(), meta[0], meta[1], meta[2], corTema);
-
+                CardCategoria card = new CardCategoria(c.getCategoriaId(), c.getCategoria(), nivel, emoji, desc, cor);
                 card.addMouseListener(new java.awt.event.MouseAdapter() {
-                    @Override
-                    public void mousePressed(java.awt.event.MouseEvent evt) {
+                    @Override public void mousePressed(java.awt.event.MouseEvent evt) {
                         if (cardSelecionado != null) cardSelecionado.setSelecionado(false);
                         cardSelecionado = card;
                         cardSelecionado.setSelecionado(true);
@@ -199,118 +212,115 @@ public class TelaCategoria extends JFrame {
         }
     }
 
-    // --- CARD CORRIGIDO COM GRIDBAGLAYOUT INTERNO ---
+    // ── CARD INTERNO ──
     private class CardCategoria extends JPanel {
         private final int categoriaId;
         private boolean selecionado = false;
         private final Color corTema;
 
-        public CardCategoria(int id, String titulo, String nivel, String icone, String subDesc, Color corTema) {
+        public CardCategoria(int id, String titulo, String nivel, String emoji, String desc, Color cor) {
             this.categoriaId = id;
-            this.corTema = corTema;
-
+            this.corTema = cor;
             setLayout(new GridBagLayout());
-            setBackground(Color.WHITE);
-            setBorder(new EmptyBorder(esc(24), esc(16), esc(24), esc(16)));
+            setOpaque(false);
+            setBorder(new EmptyBorder(esc(24), esc(18), esc(24), esc(18)));
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.gridx = 0; gbc.gridy = 0;
-            gbc.fill = GridBagConstraints.NONE;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
             gbc.anchor = GridBagConstraints.CENTER;
 
-            // 1. Bloco Quadrado do Ícone (Respeitando proporção)
+            // Ícone
             JPanel painelIcone = new JPanel(new GridBagLayout()) {
-                @Override
-                protected void paintComponent(Graphics g) {
+                @Override protected void paintComponent(Graphics g) {
                     Graphics2D g2 = (Graphics2D) g.create();
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(corTema);
-                    g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), esc(16), esc(16)));
+                    GradientPaint gp = new GradientPaint(
+                            0,0, cor.darker(),
+                            getWidth(), getHeight(), cor);
+                    g2.setPaint(gp);
+                    g2.fill(new RoundRectangle2D.Float(0,0,getWidth(),getHeight(),esc(14),esc(14)));
                     g2.dispose();
                 }
             };
             painelIcone.setOpaque(false);
-            Dimension dimIcone = new Dimension(esc(64), esc(64));
-            painelIcone.setPreferredSize(dimIcone);
-            painelIcone.setMinimumSize(dimIcone);
+            Dimension dimI = new Dimension(esc(68), esc(68));
+            painelIcone.setPreferredSize(dimI);
 
-            JLabel lblIcone = new JLabel(icone, SwingConstants.CENTER);
-            lblIcone.setFont(new Font("Segoe UI", Font.BOLD, esc(24)));
-            lblIcone.setForeground(Color.WHITE);
-            painelIcone.add(lblIcone);
+            JLabel lblEmoji = new JLabel(emoji, SwingConstants.CENTER);
+            lblEmoji.setFont(new Font("Segoe UI Emoji", Font.PLAIN, esc(28)));
+            painelIcone.add(lblEmoji);
 
-            gbc.insets = new Insets(0, 0, esc(16), 0);
+            gbc.insets = new Insets(0,0,esc(14),0);
             add(painelIcone, gbc);
 
-            // 2. Título do Card
+            // Título
             gbc.gridy++;
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            JLabel lblTitulo = new JLabel(titulo, SwingConstants.CENTER);
-            lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, esc(18)));
-            lblTitulo.setForeground(new Color(30, 41, 59));
-            gbc.insets = new Insets(0, 0, esc(4), 0);
-            add(lblTitulo, gbc);
+            JLabel lblTit = new JLabel(titulo, SwingConstants.CENTER);
+            lblTit.setFont(new Font("Segoe UI", Font.BOLD, esc(17)));
+            lblTit.setForeground(TEXTO);
+            gbc.insets = new Insets(0,0,esc(4),0);
+            add(lblTit, gbc);
 
-            // 3. Descrição sutil
+            // Descrição
             gbc.gridy++;
-            JLabel lblDesc = new JLabel(subDesc, SwingConstants.CENTER);
+            JLabel lblDesc = new JLabel(desc, SwingConstants.CENTER);
             lblDesc.setFont(new Font("Segoe UI", Font.PLAIN, esc(11)));
-            lblDesc.setForeground(new Color(148, 163, 184));
-            gbc.insets = new Insets(0, 0, esc(24), 0);
+            lblDesc.setForeground(SUB);
+            gbc.insets = new Insets(0,0,esc(20),0);
             add(lblDesc, gbc);
 
-            // 4. Separador Fino
+            // Separador
             gbc.gridy++;
             JSeparator sep = new JSeparator();
-            sep.setForeground(new Color(241, 245, 249));
-            gbc.insets = new Insets(0, esc(8), esc(14), esc(8));
+            sep.setForeground(BORDA);
+            gbc.insets = new Insets(0,esc(6),esc(12),esc(6));
             add(sep, gbc);
 
-            // 5. Linha de Rodapé do Card (Nível e contagem de questões fictícia)
+            // Rodapé do card
             gbc.gridy++;
-            JPanel containerLinha = new JPanel(new BorderLayout());
-            containerLinha.setOpaque(false);
-
+            JPanel linha = new JPanel(new BorderLayout());
+            linha.setOpaque(false);
             JLabel lblNivel = new JLabel(nivel);
             lblNivel.setFont(new Font("Segoe UI", Font.BOLD, esc(11)));
-            lblNivel.setForeground(corTema);
-
-            JLabel lblQtdQuestoes = new JLabel("10 Questões");
-            lblQtdQuestoes.setFont(new Font("Segoe UI", Font.PLAIN, esc(11)));
-            lblQtdQuestoes.setForeground(new Color(203, 213, 225));
-
-            containerLinha.add(lblNivel, BorderLayout.WEST);
-            containerLinha.add(lblQtdQuestoes, BorderLayout.EAST);
-
-            gbc.insets = new Insets(0, esc(8), 0, esc(8));
-            add(containerLinha, gbc);
+            lblNivel.setForeground(cor);
+            JLabel lblQtd2 = new JLabel("50 questões");
+            lblQtd2.setFont(new Font("Segoe UI", Font.PLAIN, esc(11)));
+            lblQtd2.setForeground(SUB);
+            linha.add(lblNivel, BorderLayout.WEST);
+            linha.add(lblQtd2, BorderLayout.EAST);
+            gbc.insets = new Insets(0,esc(6),0,esc(6));
+            add(linha, gbc);
         }
 
         public int getCategoriaId() { return categoriaId; }
 
-        public void setSelecionado(boolean selecionado) {
-            this.selecionado = selecionado;
+        public void setSelecionado(boolean sel) {
+            this.selecionado = sel;
             repaint();
         }
 
-        @Override
-        protected void paintComponent(Graphics g) {
+        @Override protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            g2.setColor(getBackground());
-            g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), esc(20), esc(20)));
-
+            g2.setColor(CARD);
+            g2.fill(new RoundRectangle2D.Float(0,0,getWidth(),getHeight(),esc(18),esc(18)));
             if (selecionado) {
+                // Brilho colorido ao selecionar
                 g2.setColor(corTema);
-                g2.setStroke(new BasicStroke(3f));
+                g2.setStroke(new BasicStroke(2.5f));
+                g2.draw(new RoundRectangle2D.Float(1,1,getWidth()-2,getHeight()-2,esc(18),esc(18)));
+                // Glow interno
+                g2.setColor(new Color(corTema.getRed(), corTema.getGreen(), corTema.getBlue(), 25));
+                g2.fill(new RoundRectangle2D.Float(0,0,getWidth(),getHeight(),esc(18),esc(18)));
             } else {
-                g2.setColor(new Color(226, 232, 240));
-                g2.setStroke(new BasicStroke(1.5f));
+                g2.setColor(BORDA);
+                g2.setStroke(new BasicStroke(1.2f));
+                g2.draw(new RoundRectangle2D.Float(1,1,getWidth()-2,getHeight()-2,esc(18),esc(18)));
             }
-            g2.draw(new RoundRectangle2D.Float(1, 1, getWidth() - 2, getHeight() - 2, 20, 20));
             g2.dispose();
+            super.paintComponent(g);
         }
     }
 }

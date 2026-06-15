@@ -14,7 +14,7 @@ public class DatabaseConnection {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mysql://localhost:3306/quiz_game?useSSL=false&serverTimezone=UTC");
         config.setUsername("root");
-        config.setPassword("");
+        config.setPassword("asdfghjklç");
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(2);
         config.setIdleTimeout(30000);

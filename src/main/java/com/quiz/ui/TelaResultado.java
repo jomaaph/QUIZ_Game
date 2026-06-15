@@ -9,187 +9,223 @@ import java.awt.geom.RoundRectangle2D;
 
 public class TelaResultado extends JFrame {
 
-    // Paleta de Cores do Tema (Figma Neo-Dark Consistente)
-    private final Color COR_BG      = new Color(15, 15, 25);
-    private final Color COR_CARD    = new Color(30, 30, 46);
-    private final Color COR_AZUL    = new Color(99, 102, 241);
-    private final Color COR_VERDE   = new Color(34, 197, 94);
-    private final Color COR_TEXTO   = new Color(205, 214, 244);
-    private final Color COR_LARANJA = new Color(251, 146, 60);
+    private final Color BG      = new Color(10, 10, 20);
+    private final Color CARD    = new Color(22, 22, 38);
+    private final Color CARD2   = new Color(30, 30, 50);
+    private final Color BORDA   = new Color(50, 50, 75);
+    private final Color AZUL    = new Color(99, 102, 241);
+    private final Color VERDE   = new Color(34, 197, 94);
+    private final Color VERMELHO= new Color(239, 68, 68);
+    private final Color AMARELO = new Color(251, 191, 36);
+    private final Color LARANJA = new Color(251, 146, 60);
+    private final Color TEXTO   = Color.WHITE;
+    private final Color SUB     = new Color(100, 116, 139);
 
     private double escala = 1.0;
 
     public TelaResultado(Jogador jogador, int acertos, int total, int pontuacao) {
-        setTitle("Quiz Game - Desempenho");
+        setTitle("Quiz Game — Resultado");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-        // Configura tamanho da janela mantendo a proporção 16:9 responsiva
         configurarTamanhoResponsivo();
-
         setLocationRelativeTo(null);
         setResizable(false);
         construirUI(jogador, acertos, total, pontuacao);
     }
 
     private void configurarTamanhoResponsivo() {
-        Dimension tamanhoTela = Toolkit.getDefaultToolkit().getScreenSize();
-        int larguraJanela = (int) (tamanhoTela.width * 0.70); // Ocupa 70% do monitor atual
-        int alturaJanela = (larguraJanela * 9) / 16;          // Força proporção 16:9
-
-        if (larguraJanela < 1024) {
-            larguraJanela = 1024;
-            alturaJanela = 576;
-        }
-
-        setSize(larguraJanela, alturaJanela);
-        this.escala = (double) larguraJanela / 1344.0;
+        Dimension tela = Toolkit.getDefaultToolkit().getScreenSize();
+        int larg = (int) (tela.width * 0.72);
+        int alt  = (larg * 9) / 16;
+        if (larg < 1024) { larg = 1024; alt = 576; }
+        setSize(larg, alt);
+        this.escala = (double) larg / 1344.0;
     }
 
-    private int esc(int pixels) {
-        return (int) Math.round(pixels * escala);
-    }
+    private int esc(int px) { return (int) Math.round(px * escala); }
 
     private void construirUI(Jogador jogador, int acertos, int total, int pontuacao) {
-        JPanel root = new JPanel(new GridBagLayout());
-        root.setBackground(COR_BG);
+        JPanel root = new JPanel(new GridBagLayout()) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                GradientPaint gp = new GradientPaint(
+                        0,0, BG, getWidth(), getHeight(), new Color(18,12,35));
+                g2.setPaint(gp);
+                g2.fillRect(0,0,getWidth(),getHeight());
+                g2.dispose();
+            }
+        };
 
-        // --- CARD CENTRAL ---
+        // Card central
         JPanel card = new JPanel(new GridBagLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
+            @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(COR_CARD);
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), esc(24), esc(24)));
-
-                g2.setColor(new Color(55, 55, 75));
+                g2.setColor(CARD);
+                g2.fill(new RoundRectangle2D.Float(0,0,getWidth(),getHeight(),esc(22),esc(22)));
+                g2.setColor(BORDA);
                 g2.setStroke(new BasicStroke(1.5f));
-                g2.draw(new RoundRectangle2D.Float(1, 1, getWidth() - 2, getHeight() - 2, esc(24), esc(24)));
+                g2.draw(new RoundRectangle2D.Float(1,1,getWidth()-2,getHeight()-2,esc(22),esc(22)));
                 g2.dispose();
             }
         };
         card.setOpaque(false);
-        card.setBorder(new EmptyBorder(esc(40), esc(60), esc(40), esc(60)));
-        card.setPreferredSize(new Dimension(esc(620), esc(500)));
+        card.setBorder(new EmptyBorder(esc(36), esc(56), esc(36), esc(56)));
+        card.setPreferredSize(new Dimension(esc(700), esc(530)));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0; gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
+        gbc.gridx = 0; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
 
-        // 1. Emoji Dinâmico com base na Performance
         double pct = (double) acertos / total;
-        String emoji = pct >= 0.8 ? "🏆" : pct >= 0.5 ? "⚡" : "🎯";
+        String emoji, mensagem;
+        Color corMensagem;
 
+        if (pct >= 0.8) {
+            emoji = "🏆"; mensagem = "Excelente! Domínio Total!"; corMensagem = AMARELO;
+        } else if (pct >= 0.6) {
+            emoji = "⚡"; mensagem = "Muito bom! Continue assim!"; corMensagem = VERDE;
+        } else if (pct >= 0.4) {
+            emoji = "🎯"; mensagem = "Boa tentativa! Pode melhorar!"; corMensagem = LARANJA;
+        } else {
+            emoji = "💪"; mensagem = "Não desistas! Tenta de novo!"; corMensagem = VERMELHO;
+        }
+
+        // Emoji
         JLabel icone = new JLabel(emoji, SwingConstants.CENTER);
-        icone.setFont(new Font("Segoe UI Emoji", Font.PLAIN, esc(54)));
-        gbc.gridy = 0; gbc.insets = new Insets(0, 0, esc(12), 0);
+        icone.setFont(new Font("Segoe UI Emoji", Font.PLAIN, esc(52)));
+        gbc.gridy = 0; gbc.insets = new Insets(0,0,esc(8),0);
         card.add(icone, gbc);
 
-        // 2. Título da Conclusão
-        JLabel titulo = new JLabel("Partida Concluída!", SwingConstants.CENTER);
-        titulo.setFont(new Font("Segoe UI", Font.BOLD, esc(26)));
-        titulo.setForeground(COR_AZUL);
-        gbc.gridy = 1; gbc.insets = new Insets(0, 0, esc(4), 0);
-        card.add(titulo, gbc);
+        // Mensagem dinâmica
+        JLabel lblMsg = new JLabel(mensagem, SwingConstants.CENTER);
+        lblMsg.setFont(new Font("Segoe UI", Font.BOLD, esc(24)));
+        lblMsg.setForeground(corMensagem);
+        gbc.gridy = 1; gbc.insets = new Insets(0,0,esc(4),0);
+        card.add(lblMsg, gbc);
 
-        // 3. Identificação do Usuário
-        JLabel lblJogador = new JLabel("Jogador: " + jogador.getUsername().toUpperCase(), SwingConstants.CENTER);
-        lblJogador.setFont(new Font("Segoe UI", Font.PLAIN, esc(14)));
-        lblJogador.setForeground(new Color(148, 163, 184));
-        gbc.gridy = 2; gbc.insets = new Insets(0, 0, esc(20), 0);
-        card.add(lblJogador, gbc);
+        // Jogador
+        JLabel lblJog = new JLabel("Jogador: " + jogador.getUsername().toUpperCase(), SwingConstants.CENTER);
+        lblJog.setFont(new Font("Segoe UI", Font.PLAIN, esc(13)));
+        lblJog.setForeground(SUB);
+        gbc.gridy = 2; gbc.insets = new Insets(0,0,esc(20),0);
+        card.add(lblJog, gbc);
 
-        // 4. Divisor Estilizado
+        // Separador
         JSeparator sep = new JSeparator();
-        sep.setForeground(new Color(63, 63, 89));
-        gbc.gridy = 3; gbc.insets = new Insets(0, esc(20), esc(20), esc(20));
+        sep.setForeground(BORDA);
+        gbc.gridy = 3; gbc.insets = new Insets(0,esc(20),esc(20),esc(20));
         card.add(sep, gbc);
 
-        // 5. Bloco de Dados - Acertos
-        JLabel lblAcertos = new JLabel("Acertos: " + acertos + " / " + total, SwingConstants.CENTER);
-        lblAcertos.setFont(new Font("Segoe UI", Font.BOLD, esc(22)));
-        lblAcertos.setForeground(COR_VERDE);
-        gbc.gridy = 4; gbc.insets = new Insets(0, 0, esc(6), 0);
-        card.add(lblAcertos, gbc);
+        // Bloco de estatísticas (3 cards lado a lado)
+        gbc.gridy = 4; gbc.insets = new Insets(0,0,esc(20),0);
+        JPanel stats = new JPanel(new GridLayout(1, 3, esc(14), 0));
+        stats.setOpaque(false);
+        stats.add(criarStatCard("✓ Acertos", acertos + " / " + total, VERDE));
+        stats.add(criarStatCard("% Aproveitamento", (int)(pct*100) + "%", AZUL));
+        stats.add(criarStatCard("💰 Kwanzas", pontuacao + " KZ", AMARELO));
+        card.add(stats, gbc);
 
-        // 6. Bloco de Dados - Percentual de Aproveitamento
-        int perc = (int) (pct * 100);
-        JLabel lblPerc = new JLabel("Aproveitamento: " + perc + "%", SwingConstants.CENTER);
-        lblPerc.setFont(new Font("Segoe UI", Font.PLAIN, esc(15)));
-        lblPerc.setForeground(COR_TEXTO);
-        gbc.gridy = 5; gbc.insets = new Insets(0, 0, esc(6), 0);
-        card.add(lblPerc, gbc);
+        // Barra de progresso visual
+        gbc.gridy = 5; gbc.insets = new Insets(0,0,esc(28),0);
+        JPanel barraWrap = new JPanel(new BorderLayout(0, esc(4)));
+        barraWrap.setOpaque(false);
+        JLabel lblBarra = new JLabel("Aproveitamento Visual", SwingConstants.CENTER);
+        lblBarra.setFont(new Font("Segoe UI", Font.PLAIN, esc(11)));
+        lblBarra.setForeground(SUB);
+        JProgressBar barra = new JProgressBar(0, 100);
+        barra.setValue((int)(pct * 100));
+        barra.setStringPainted(false);
+        barra.setBackground(new Color(35,35,55));
+        barra.setForeground(pct >= 0.6 ? VERDE : pct >= 0.4 ? LARANJA : VERMELHO);
+        barra.setBorderPainted(false);
+        barra.setPreferredSize(new Dimension(0, esc(10)));
+        barraWrap.add(lblBarra, BorderLayout.NORTH);
+        barraWrap.add(barra, BorderLayout.CENTER);
+        card.add(barraWrap, gbc);
 
-        // 7. Bloco de Dados - Pontuação Acumulada
-        JLabel lblPontos = new JLabel("Pontuação Final: " + pontuacao + " KZ", SwingConstants.CENTER);
-        lblPontos.setFont(new Font("Segoe UI", Font.BOLD, esc(16)));
-        lblPontos.setForeground(COR_LARANJA);
-        gbc.gridy = 6; gbc.insets = new Insets(0, 0, esc(32), 0);
-        card.add(lblPontos, gbc);
+        // Botões
+        gbc.gridy = 6; gbc.insets = new Insets(0,0,0,0);
+        JPanel btns = new JPanel(new GridLayout(1, 2, esc(14), 0));
+        btns.setOpaque(false);
 
-        // 8. Painel Lateral de Ações (Botões)
-        JPanel painelBtns = new JPanel(new GridLayout(1, 2, esc(16), 0));
-        painelBtns.setOpaque(false);
-
-        JButton btnNova = new JButton("NOVA PARTIDA") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getBackground());
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), esc(10), esc(10)));
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        estilizarBtn(btnNova, COR_AZUL, COR_BG);
+        JButton btnNova = criarBotao("🔄  NOVA PARTIDA", AZUL, TEXTO);
         btnNova.addActionListener(e -> {
-            // Retorna o jogador diretamente para a seleção de módulos sem deslogar
             new TelaCategoria(jogador).setVisible(true);
             dispose();
         });
 
-        JButton btnSair = new JButton("SAIR DO JOGO") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getBackground());
-                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), esc(10), esc(10)));
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        estilizarBtn(btnSair, new Color(239, 68, 68), Color.WHITE);
+        JButton btnSair = criarBotao("✕  SAIR", new Color(35,20,20), VERMELHO);
         btnSair.addActionListener(e -> System.exit(0));
 
-        painelBtns.add(btnNova);
-        painelBtns.add(btnSair);
-
-        gbc.gridy = 7; gbc.insets = new Insets(0, 0, 0, 0);
-        card.add(painelBtns, gbc);
+        btns.add(btnNova);
+        btns.add(btnSair);
+        card.add(btns, gbc);
 
         root.add(card);
         add(root);
     }
 
-    private void stylizeButtonTextOnly(JButton b, Color corFundo, Color corTexto) {
-        b.setOpaque(false);
-        b.setContentAreaFilled(false);
-        b.setFocusPainted(false);
-        b.setBackground(corFundo);
-        b.setForeground(corTexto);
-        b.setFont(new Font("Segoe UI", Font.BOLD, esc(13)));
-        b.setBorder(BorderFactory.createEmptyBorder(esc(12), esc(24), esc(12), esc(24)));
-        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    private JPanel criarStatCard(String label, String valor, Color cor) {
+        JPanel p = new JPanel(new GridBagLayout()) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(CARD2);
+                g2.fill(new RoundRectangle2D.Float(0,0,getWidth(),getHeight(),esc(12),esc(12)));
+                g2.setColor(cor);
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.draw(new RoundRectangle2D.Float(1,1,getWidth()-2,getHeight()-2,esc(12),esc(12)));
+                // Linha colorida no topo
+                g2.setColor(cor);
+                g2.setStroke(new BasicStroke(3f));
+                g2.drawLine(esc(16), 0, getWidth()-esc(16), 0);
+                g2.dispose();
+            }
+        };
+        p.setOpaque(false);
+        p.setBorder(new EmptyBorder(esc(14), esc(12), esc(14), esc(12)));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.CENTER;
+
+        JLabel lblValor = new JLabel(valor, SwingConstants.CENTER);
+        lblValor.setFont(new Font("Segoe UI", Font.BOLD, esc(22)));
+        lblValor.setForeground(cor);
+        p.add(lblValor, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(esc(2),0,0,0);
+        JLabel lblLabel = new JLabel(label, SwingConstants.CENTER);
+        lblLabel.setFont(new Font("Segoe UI", Font.PLAIN, esc(11)));
+        lblLabel.setForeground(SUB);
+        p.add(lblLabel, gbc);
+
+        return p;
     }
 
-    // Método auxiliar para manter compatibilidade com a assinatura do seu método original
-    private void estilizarBtn(JButton b, Color cor) {
-        stylizeButtonTextOnly(b, cor, new Color(15, 15, 25));
-    }
-
-    private void estilizarBtn(JButton b, Color corFundo, Color corTexto) {
-        stylizeButtonTextOnly(b, corFundo, corTexto);
+    private JButton criarBotao(String texto, Color bg, Color fg) {
+        JButton btn = new JButton(texto) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fill(new RoundRectangle2D.Float(0,0,getWidth(),getHeight(),esc(10),esc(10)));
+                g2.setColor(getForeground().darker());
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(new RoundRectangle2D.Float(1,1,getWidth()-2,getHeight()-2,esc(10),esc(10)));
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setOpaque(false);
+        btn.setContentAreaFilled(false);
+        btn.setFocusPainted(false);
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, esc(13)));
+        btn.setBorder(BorderFactory.createEmptyBorder(esc(13), esc(24), esc(13), esc(24)));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return btn;
     }
 }
